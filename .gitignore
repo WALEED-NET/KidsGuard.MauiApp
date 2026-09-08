@@ -1,0 +1,30 @@
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+artifacts/
+
+# ---- Android ----
+*.apk
+*.aab
+*.keystore
+*.jks
+local.properties
+
+# ---- IDE ----
+.vs/
+.idea/
+*.swp
+
+# ---- OS ----
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---- Secrets ----
+appsettings.*.Local.json
+secrets.json
+*.pfx
