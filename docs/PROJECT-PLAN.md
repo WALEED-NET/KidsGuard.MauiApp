@@ -50,7 +50,7 @@
 
 | القرار | البديل المرفوض | السبب |
 |--------|-----------------|-------|
-| `Android` فقط، `minSdk 26` / `targetSdk 35` | `iOS` أو `cross-platform` | `Apple` تمنع كلّ هذه الوظائف تقنياً؛ فميزة تعدّد المنصّات بلا قيمة |
+| `Android` فقط، `minSdk 26` / `targetSdk 36` | `iOS` أو `cross-platform` | `Apple` تمنع كلّ هذه الوظائف تقنياً؛ فميزة تعدّد المنصّات بلا قيمة |
 | `.NET for Android` خام | `Blazor Hybrid` / `MAUI UI` | التطبيق `services` بلا واجهة تقريباً؛ `WebView` عبء يُسرّع قتل العملية |
 | بلا خادم | `ASP.NET Core API` | كلّ الميزات المطلوبة محليّة؛ الخادم يُضاف لاحقاً إن أردنا لوحة عن بُعد |
 | `setPackagesSuspended` | `AccessibilityService` | أبسط وأقوى، ويُجنّبنا سياسات `Google Play` الصارمة |
@@ -533,7 +533,7 @@ adb emu avd snapshot load clean_state
 
 | القرار | الاختيار |
 |--------|----------|
-| المنصّة المستهدفة | `Android` عموماً — `minSdk 26` / `targetSdk 35` |
+| المنصّة المستهدفة | `Android` عموماً — `minSdk 26` / `targetSdk 36` |
 | بيئة الاختبار | `emulator` للمراحل 1 و2، جهاز حقيقي لما بعدها |
 | الاستضافة | `MonsterASP` — الخطة المجانية |
 | لوحة الوالد | `Blazor WebAssembly PWA` بتصميم `mobile-first` |

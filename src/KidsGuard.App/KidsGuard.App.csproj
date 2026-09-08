@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- targetSdk 36 مثبّت صراحةً (الـ workload 36.1.53 لا يقبل 35) — بلا الرقم يتبع الـ TFM أحدث API مثبّت ويتغيّر تحتنا -->
+    <TargetFramework>net10.0-android36.0</TargetFramework>
+    <!-- minSdk 26: setPackagesSuspended تحتاج API 24، وقنوات الإشعارات تحتاج 26 -->
+    <SupportedOSPlatformVersion>26</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ApplicationId>com.kidsguard.app</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
+    <!-- x64 للـ emulator، arm64 لجهاز الطفل -->
+    <RuntimeIdentifiers>android-x64;android-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      القالب يضع TrimMode=full. أُلغي هنا عمداً:
+      مسار الطوارئ يستدعي DevicePolicyManager عبر Java interop، وقصّ خاطئ في Release
+      يعني جهازاً عالقاً بلا مخرج. تُعاد الموازنة بعد نجاح المرحلة 1 كاملة.
+    -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <AndroidLinkMode>None</AndroidLinkMode>
+  </PropertyGroup>
+
+</Project>

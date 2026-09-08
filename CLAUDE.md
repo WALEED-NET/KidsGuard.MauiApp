@@ -13,7 +13,7 @@
 
 | القطعة | التقنية |
 |--------|---------|
-| جهاز الطفل | `.NET for Android` (`net10.0-android`)، `minSdk 26` / `targetSdk 35` |
+| جهاز الطفل | `.NET for Android` (`net10.0-android36.0`)، `minSdk 26` / `targetSdk 36` |
 | الخادم | `ASP.NET Core API` + `SignalR Hub` على `MonsterASP` (مجاني) |
 | لوحة الوالد | `Blazor WebAssembly PWA`، `mobile-first` |
 | إشعار الوالد | `WhatsApp` عبر الخادم — **لا `Firebase` ولا `FCM`** |
@@ -34,3 +34,35 @@
 ## الحالة الآن
 
 لم يُكتب كود. الخطوة التالية: المهمّة `1.0` — إنشاء مشروع `net10.0-android` وأوّل بناء على `emulator`.
+
+## 📚 تعليمات إلزامية خارجية
+
+مستودع القواعد المشتركة: `D:\projects\ai-coding-guidelines` — **يُقرأ المنطبق منه قبل كتابة أي كود.**
+
+| الملف | متى يُقرأ |
+|-------|-----------|
+| `.github/copilot-instructions.md` | القواعد العامة — مرجع دائم |
+| `.github/instructions/csharp.instructions.md` | قبل أي ملف `.cs` |
+| `.maui-skills/plugins/maui-skills/skills/maui-current-apis/SKILL.md` | حارس دائم ضدّ `API` مهجور |
+| `.maui-skills/.../xamarin-android-migration/SKILL.md` | بنية `csproj` و`manifest` لـ`.NET for Android` |
+| `.maui-skills/.../maui-permissions/SKILL.md` | عند أي `runtime permission` |
+| `.maui-skills/.../maui-platform-invoke/SKILL.md` | عند استدعاء `API` أصلي من `Android` |
+| `.maui-skills/.../maui-app-lifecycle/SKILL.md` | عند `Service` أو دورة حياة |
+| `.maui-skills/.../maui-secure-storage/SKILL.md` | عند تخزين `PIN` أو أسرار |
+| `.maui-skills/.../maui-unit-testing/SKILL.md` | عند كتابة اختبارات |
+
+### ما ينطبق وما لا ينطبق
+
+جهاز الطفل مشروع `.NET for Android` **خام لا `MAUI`** — فلا تنطبق مهارات `XAML` و`Shell` و`CollectionView`
+و`data-binding`. ينطبق منها: `platform-invoke` و`permissions` و`app-lifecycle` و`secure-storage`
+و`current-apis`. أمّا مهارات `Blazor` في `docs/blazor/` فتنطبق على لوحة الوالد في المرحلة 8.
+
+### قواعد `C#` مأخوذة من المستودع
+
+| القاعدة | التطبيق هنا |
+|---------|--------------|
+| لا `DateTime.Now` مباشرة | استخدم `TimeProvider` — حدود الوقت اليومية تحتاج اختباراً |
+| `_camelCase` للحقول الخاصة، `PascalCase` للباقي | كما هو |
+| لا `Exception` للأخطاء المتوقّعة | `ReleaseManager` يرجع نتيجة، لا يرمي |
+| اقرأ الملف قبل تعديله | كما هو |
+| لا تُنشئ ملفات `.md` بلا طلب صريح | كما هو |

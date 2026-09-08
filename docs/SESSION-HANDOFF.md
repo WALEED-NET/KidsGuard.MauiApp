@@ -39,7 +39,7 @@
 
 | القرار | الاختيار | البديل المرفوض ولماذا |
 |--------|----------|------------------------|
-| المنصّة | `Android` فقط، `minSdk 26` / `targetSdk 35` | `iOS` — `Apple` تمنع كلّ هذه الوظائف تقنياً |
+| المنصّة | `Android` فقط، `minSdk 26` / `targetSdk 36` | `iOS` — `Apple` تمنع كلّ هذه الوظائف تقنياً |
 | تطبيق الطفل | `.NET for Android` خام (`net10.0-android`) | `MAUI UI` / `Blazor Hybrid` — التطبيق `services` بلا واجهة، و`WebView` عبء يُسرّع قتل العملية |
 | الصلاحيات | `Device Owner` عبر `dpm set-device-owner` | `DeviceAdmin` وحده — رادع لا مانع |
 | حجب التطبيقات | `setPackagesSuspended` | `AccessibilityService` — أصعب، ويستوجب إفصاحاً خاصاً في `Google Play` |
@@ -64,6 +64,7 @@
 | 3 | `Firebase` مطلوب للإشعارات | جهاز الطفل `ForegroundService` أصلاً، فـ`SignalR` يبقى متّصلاً. والوالد يُوقَظ برسالة `WhatsApp` | صفر `Firebase` |
 | 4 | نبني `AccessibilityService` للحجب | `setPackagesSuspended` من `Device Owner` أبسط وأقوى | حذف أصعب مرحلة |
 | 5 | `Device Owner` تُؤجَّل للنهاية | تُنفَّذ من البداية لأنها تُبسّط لا تُعقّد | إعادة ترتيب المراحل |
+| 6 | `targetSdk 35` | **مستحيل**: الـ`workload` `36.1.53` يرفض `35.0` بـ`NETSDK1140` ويقبل `36.0`/`36.1` فقط. ثُبّت `net10.0-android36.0`. وجود `Microsoft.Android.Ref.35` على القرص لا يكفي — القبول من الـ`manifest` | `targetSdk 36`. لا أثر على `Device Owner`، ونوزّع بـ`APK` فلا سياسة متجر تُلزمنا |
 
 ---
 
@@ -134,6 +135,32 @@ void ReleaseEverything()
 | `system images` | ⚠️ **`google_apis_playstore` فقط** |
 | `git identity` | ✅ `Waleed Bensumaidea` / `waleed.com145@gmail.com` |
 | متغيّرات البيئة | ⚠️ `ANDROID_HOME` و`ANDROID_SDK_ROOT` غير مضبوطين |
+| **`emulator` على خادم التطوير** | ⛔ **لا يعمل** — انظر القسم التالي |
+
+### ⛔ الـ`emulator` لا يعمل على خادم التطوير — مُثبَت
+
+`SPACELINENETCOM` (خادم `Windows Server 2022`، `RDP`) لا يشغّل الـ`emulator` إطلاقاً:
+
+```
+qemu-system-x86_64.exe: WHPX: Failed to setup partition, hr=c0350005
+qemu-system-x86_64.exe: failed to initialize WHPX: Invalid argument
+```
+
+| ما فُحِص | النتيجة |
+|----------|---------|
+| العتاد | `Ryzen 9 9950X` / 32 `cores` / 93 GB `RAM` — فائض كبير |
+| `hypervisorlaunchtype` | `Auto` ✅ |
+| `HypervisorPlatform` feature | `Enabled` ✅ |
+| `Microsoft-Hyper-V` | `Enabled` ✅، لا `VM` يعمل |
+| `HVCI` / `Credential Guard` | `SecurityServicesRunning = {0}` — معطّلة ✅ |
+| **تشغيل مرفوعاً بـ`admin`** | ❌ **الخطأ نفسه حرفياً** |
+
+> ⚠️ **فرضية الصلاحيات جُرّبت ونُفيت.** لا تُعِد تجربتها.
+> كلّ الإعدادات سليمة والخطأ باقٍ — السبب الأرجح تعارض `WHPX` مع `AMD` على `Server SKU`.
+
+**القرار:** الاختبار على جهاز/لاب توب آخر. هذا الخادم للبناء و`git` فقط.
+
+---
 
 ### ⚠️ مسألة صورة الـ`emulator`
 
@@ -150,7 +177,9 @@ void ReleaseEverything()
 
 | # | المهمّة | معيار القبول |
 |---|---------|---------------|
-| **1.0** | `solution` + مشروع `net10.0-android`، `minSdk 26` / `targetSdk 35` | التطبيق يفتح على الـ`emulator` |
+| **1.0** | ✅ `solution` + `net10.0-android36.0`، `minSdk 26` / `targetSdk 36` | ⚠️ `build` و`APK` موقّع — **لم يُفتح على جهاز بعد** |
+| **1.1** | ✅ `AppDeviceAdminReceiver` + `device_admin.xml` + شاشة الحالة | ⚠️ الـ`manifest` المُولَّد متحقّق منه — العرض لم يُختبر |
+| **1.3** | ✅ `ReleaseManager` بالترتيب الصحيح + سجلّ لكل خطوة | ⚠️ لم يُستدعَ على جهاز بعد |
 | **1.1** | `AppDeviceAdminReceiver` + `device_admin.xml` + تسجيله في الـ`manifest` | شاشة تعرض «`Device Owner`: لا» |
 | **1.2** | 🔬 تجربة `dpm set-device-owner` على الـ`AVD` الحالي | الشاشة تعرض «نعم» — أو نعرف أنّنا نحتاج صورة `google_apis` |
 | **1.3** | ⭐ `ReleaseManager` بالترتيب الصحيح + سجلّ لكلّ خطوة | تُستدعى بلا `Device Owner` فلا ترمي استثناءً |
@@ -160,6 +189,21 @@ void ReleaseEverything()
 | **1.7** | الطبقة 4: أمر عبر `SMS` | إرسال رسالة للـ`emulator` تفكّ الحماية |
 | **1.8** | الطبقة 5: حارس حلقة الانهيار | زرع انهيار متعمّد ← فكّ تلقائي بعد الثالث |
 | **1.9** | اختبار تكامل: كلّ طبقة على `snapshot` نظيف | الطبقات الخمس تنجح منفردة |
+
+### 🔑 أمر `dpm` الدقيق — من الـ`manifest` المُولَّد لا من الذاكرة
+
+```
+adb shell dpm set-device-owner com.kidsguard.app/.Security.AppDeviceAdminReceiver
+```
+
+### ⚠️ خطر مفتوح: `ClearDeviceOwnerApp` مهجورة
+
+الـ`compiler` رفع `CA1422`: الدالّة **مهجورة منذ `API 26`**، ووثائق `Android`
+تصفها بـ«for testing purposes only». مسحتُ سطح الـ`API` في `Mono.Android 36.1.30`:
+كلّ ما يخصّ الملكية هو `IsDeviceOwnerApp` و`ClearDeviceOwnerApp` و`SetDeviceOwnerLockScreenInfo`.
+
+> **لا بديل موجود.** مخرج الطوارئ كلّه يقوم على دالّة مهجورة.
+> **إثبات عملها على `API 35/36` شرط مُلزِم قبل لمس أي جهاز حقيقي.**
 
 > 🔬 المهامّ `1.2` و`1.6` **استكشافية** — نتيجتها قد تغيّر التصميم، ولذلك وُضعت مبكّرة.
 

@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KidsGuard.App/KidsGuard.App.csproj" />
+  </Folder>
+</Solution>

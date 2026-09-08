@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KidsGuard</string>
+    <string name="device_admin_label">KidsGuard</string>
+
+    <string name="status_admin_yes">مُفعَّل كـ Device Admin: نعم</string>
+    <string name="status_admin_no">مُفعَّل كـ Device Admin: لا</string>
+    <string name="status_owner_yes">Device Owner: نعم</string>
+    <string name="status_owner_no">Device Owner: لا</string>
+
+    <string name="release_log_title">سجلّ آخر محاولة فكّ</string>
+    <string name="release_log_empty">لم تُستدعَ بعد.</string>
+</resources>
