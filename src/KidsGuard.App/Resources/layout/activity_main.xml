@@ -54,6 +54,34 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/vpn_section_title"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="18dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/vpn_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:paddingBottom="12dp" />
+
+        <Button
+            android:id="@+id/vpn_toggle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="20dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#33888888" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="@string/release_log_title"
             android:textSize="15sp"
             android:textStyle="bold"

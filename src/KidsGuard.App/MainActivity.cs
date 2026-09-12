@@ -1,11 +1,18 @@
+using Android.Content;
+using Android.Content.PM;
+using Android.OS;
 using Android.Widget;
 using KidsGuard.App.Security;
+using KidsGuard.App.Vpn;
 
 namespace KidsGuard.App;
 
 [Activity(Label = "@string/app_name", MainLauncher = true, Exported = true)]
 public class MainActivity : Activity
 {
+    private const int RequestVpnConsent = 1;
+    private const int RequestPostNotifications = 2;
+
     private ReleaseManager? _releaseManager;
 
     protected override void OnCreate(Bundle? savedInstanceState)
@@ -16,6 +23,9 @@ public class MainActivity : Activity
         _releaseManager = new ReleaseManager(this);
 
         FindViewById<TextView>(Resource.Id.package_name)!.Text = PackageName;
+        FindViewById<Button>(Resource.Id.vpn_toggle)!.Click += OnVpnToggleClicked;
+
+        RequestNotificationsIfNeeded();
     }
 
     protected override void OnResume()
@@ -43,5 +53,80 @@ public class MainActivity : Activity
 
         FindViewById<TextView>(Resource.Id.status_owner)!.Text =
             GetString(isOwner ? Resource.String.status_owner_yes : Resource.String.status_owner_no);
+
+        RefreshVpnStatus();
+    }
+
+    private void RefreshVpnStatus()
+    {
+        var running = VpnController.IsRunning;
+
+        FindViewById<TextView>(Resource.Id.vpn_status)!.Text =
+            GetString(running ? Resource.String.vpn_status_on : Resource.String.vpn_status_off);
+
+        FindViewById<Button>(Resource.Id.vpn_toggle)!.Text =
+            GetString(running ? Resource.String.vpn_btn_unblock : Resource.String.vpn_btn_block);
+    }
+
+    private void OnVpnToggleClicked(object? sender, EventArgs e)
+    {
+        if (VpnController.IsRunning)
+        {
+            VpnController.Stop(this);
+            RefreshVpnStatus();
+            return;
+        }
+
+        // موافقة النظام على الـ VPN. null تعني ممنوحة سلفاً فنبدأ مباشرة.
+        var consent = VpnController.PrepareConsent(this);
+        if (consent is null)
+        {
+            StartBlocking();
+        }
+        else
+        {
+            StartActivityForResult(consent, RequestVpnConsent);
+        }
+    }
+
+    private void StartBlocking()
+    {
+        VpnController.Start(this);
+        RefreshVpnStatus();
+    }
+
+    protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+    {
+        base.OnActivityResult(requestCode, resultCode, data);
+
+        if (requestCode != RequestVpnConsent)
+        {
+            return;
+        }
+
+        if (resultCode == Result.Ok)
+        {
+            StartBlocking();
+        }
+        else
+        {
+            Toast.MakeText(this, Resource.String.vpn_consent_denied, ToastLength.Long)!.Show();
+        }
+    }
+
+    private void RequestNotificationsIfNeeded()
+    {
+        // POST_NOTIFICATIONS مطلوب من API 33 لإظهار إشعار الخدمة (شفافية للطفل).
+        // غيابه لا يمنع الحجب، لكنه يُخفي الإشعار الدالّ على أنّه فعّال.
+        // OperatingSystem.IsAndroidVersionAtLeast صيغة يفهمها محلّل CA1416.
+        if (!OperatingSystem.IsAndroidVersionAtLeast(33))
+        {
+            return;
+        }
+
+        if (CheckSelfPermission(Android.Manifest.Permission.PostNotifications) != Permission.Granted)
+        {
+            RequestPermissions([Android.Manifest.Permission.PostNotifications], RequestPostNotifications);
+        }
     }
 }

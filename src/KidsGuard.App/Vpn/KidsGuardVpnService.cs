@@ -1,0 +1,217 @@
+using Android.App;
+using Android.Content;
+using Android.Content.PM;
+using Android.Net;
+using Android.OS;
+using Java.IO;
+
+namespace KidsGuard.App.Vpn;
+
+/// <summary>
+/// حجب الإنترنت محلياً عبر VpnService. تنشئ واجهة TUN توجّه كلّ حركة IPv4 و IPv6
+/// إلى داخلها ثمّ تُسقطها بلا تمرير — فينقطع الإنترنت كليّاً ما دامت الخدمة تعمل.
+///
+/// لا تحتاج Device Owner: الموافقة من المستخدم عبر VpnService.Prepare. سلبيّتها أنّ
+/// المستخدم يقدر فصلها من إعدادات النظام؛ منعُ ذلك يأتي لاحقاً بـ setAlwaysOnVpnPackage
+/// مع lockdown من Device Owner (المرحلة 2).
+///
+/// هذه نسخة "احجب الكلّ". فلترة النطاقات بـ DNS (المرحلة 5 الكاملة) تُبنى فوق
+/// نفس البنية: تُستبدل حلقة الإسقاط بحلقة تقرأ حزم DNS وتفلترها.
+/// </summary>
+[Service(
+    Permission = "android.permission.BIND_VPN_SERVICE",
+    Exported = true,
+    ForegroundServiceType = ForegroundService.TypeSpecialUse)]
+[IntentFilter(new[] { "android.net.VpnService" })]
+public sealed class KidsGuardVpnService : VpnService
+{
+    public const string ActionStart = "com.kidsguard.app.action.VPN_START";
+    public const string ActionStop = "com.kidsguard.app.action.VPN_STOP";
+
+    private const string Tag = "KidsGuard.Vpn";
+    private const string ChannelId = "kidsguard_vpn_status";
+    private const int NotificationId = 1001;
+
+    // عنوان خاصّ داخل واجهة TUN — لا يخرج إلى الشبكة، مجرّد طرف للنفق.
+    private const string TunAddress = "10.111.222.1";
+
+    private ParcelFileDescriptor? _tunInterface;
+    private Thread? _drainThread;
+    private volatile bool _running;
+
+    public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
+    {
+        if (intent?.Action == ActionStop)
+        {
+            StopBlocking();
+            StopSelf();
+            return StartCommandResult.NotSticky;
+        }
+
+        StartBlocking();
+        // Sticky: لو قتل النظام العملية أعاد تشغيل الخدمة فيعود الحجب.
+        return StartCommandResult.Sticky;
+    }
+
+    private void StartBlocking()
+    {
+        if (_running)
+        {
+            return;
+        }
+
+        CreateNotificationChannel();
+        StartForeground(NotificationId, BuildNotification());
+
+        try
+        {
+            var builder = new Builder(this)
+                .SetSession("KidsGuard")
+                .AddAddress(TunAddress, 32)
+                // 0.0.0.0/0 و ::/0 يوجّهان كلّ حركة IPv4 و IPv6 إلى النفق.
+                // إغفال IPv6 يترك ثغرة يتسرّب منها الإنترنت.
+                .AddRoute("0.0.0.0", 0)
+                .AddRoute("::", 0);
+
+            _tunInterface = builder.Establish();
+            if (_tunInterface is null)
+            {
+                Android.Util.Log.Error(Tag, "Establish() returned null - consent missing or another VPN active");
+                StopBlocking();
+                StopSelf();
+                return;
+            }
+
+            _running = true;
+            VpnController.SetRunning(true);
+
+            _drainThread = new Thread(DrainLoop) { IsBackground = true, Name = "kidsguard-vpn-drain" };
+            _drainThread.Start();
+
+            Android.Util.Log.Warn(Tag, "internet blocking STARTED");
+        }
+        catch (Exception ex)
+        {
+            Android.Util.Log.Error(Tag, "StartBlocking failed: " + ex);
+            StopBlocking();
+            StopSelf();
+        }
+    }
+
+    /// <summary>
+    /// تقرأ الحزم الواردة من واجهة TUN وتُسقطها دون تمرير. القراءة تحجب الخيط
+    /// حتى يُغلَق الواصف عند الإيقاف، فتخرج الحلقة بأمان.
+    /// </summary>
+    private void DrainLoop()
+    {
+        try
+        {
+            var descriptor = _tunInterface?.FileDescriptor;
+            if (descriptor is null)
+            {
+                return;
+            }
+
+            using var input = new FileInputStream(descriptor);
+            var packet = new byte[32767];
+
+            while (_running)
+            {
+                var read = input.Read(packet);
+                if (read < 0)
+                {
+                    break;
+                }
+                // نُسقط الحزمة: لا تمرير ولا ردّ = لا إنترنت.
+            }
+        }
+        catch (Exception ex)
+        {
+            // الإغلاق أثناء القراءة يرمي استثناءً متوقّعاً — ليس خطأً.
+            Android.Util.Log.Info(Tag, "drain loop ended: " + ex.Message);
+        }
+    }
+
+    private void StopBlocking()
+    {
+        _running = false;
+
+        try
+        {
+            _tunInterface?.Close();
+        }
+        catch (Exception ex)
+        {
+            Android.Util.Log.Warn(Tag, "closing tun failed: " + ex.Message);
+        }
+        finally
+        {
+            _tunInterface = null;
+        }
+
+        try
+        {
+            _drainThread?.Join(500);
+        }
+        catch (Exception ex)
+        {
+            Android.Util.Log.Warn(Tag, "join drain thread failed: " + ex.Message);
+        }
+        finally
+        {
+            _drainThread = null;
+        }
+
+        VpnController.SetRunning(false);
+        StopForeground(StopForegroundFlags.Remove);
+        Android.Util.Log.Warn(Tag, "internet blocking STOPPED");
+    }
+
+    public override void OnDestroy()
+    {
+        StopBlocking();
+        base.OnDestroy();
+    }
+
+    /// <summary>يُستدعى حين يفصل المستخدم الـ VPN من إعدادات النظام.</summary>
+    public override void OnRevoke()
+    {
+        Android.Util.Log.Warn(Tag, "VPN revoked from system settings");
+        StopBlocking();
+        StopSelf();
+        base.OnRevoke();
+    }
+
+    private void CreateNotificationChannel()
+    {
+        var manager = (NotificationManager?)GetSystemService(NotificationService);
+        if (manager is null)
+        {
+            return;
+        }
+
+        var name = GetString(Resource.String.vpn_channel_name);
+        var channel = new NotificationChannel(ChannelId, name, NotificationImportance.Low)
+        {
+            Description = name
+        };
+        manager.CreateNotificationChannel(channel);
+    }
+
+    private Notification BuildNotification()
+    {
+        // النقر على الإشعار يفتح الشاشة الرئيسية — شفافية: الطفل يرى أنّ الحجب فعّال.
+        var launch = new Intent(this, typeof(MainActivity));
+        launch.AddFlags(ActivityFlags.SingleTop);
+        var pending = PendingIntent.GetActivity(
+            this, 0, launch, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
+
+        return new Notification.Builder(this, ChannelId)
+            .SetContentTitle(GetString(Resource.String.vpn_notif_title))
+            .SetContentText(GetString(Resource.String.vpn_notif_text))
+            .SetSmallIcon(Android.Resource.Drawable.IcLockLock)
+            .SetContentIntent(pending)
+            .SetOngoing(true)
+            .Build();
+    }
+}
