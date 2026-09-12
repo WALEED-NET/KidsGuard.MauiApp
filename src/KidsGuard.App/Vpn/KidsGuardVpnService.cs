@@ -4,6 +4,7 @@ using Android.Content.PM;
 using Android.Net;
 using Android.OS;
 using Java.IO;
+using KidsGuard.App.Apps;
 using KidsGuard.App.Logging;
 
 namespace KidsGuard.App.Vpn;
@@ -56,16 +57,23 @@ public sealed class KidsGuardVpnService : VpnService
 
     private void StartBlocking()
     {
-        if (_running)
-        {
-            return;
-        }
-
         CreateNotificationChannel();
         StartForeground(NotificationId, BuildNotification());
 
+        // نُعيد الإنشاء دائماً عند ActionStart لتُطبَّق أي تغييرات في قائمة الحجب.
+        CloseInterface();
+
         try
         {
+            var blocked = new BlockedAppsStore(this).GetBlocked();
+            if (blocked.Count == 0)
+            {
+                AppLog.Warn(Tag, "no apps selected — nothing to block, stopping");
+                StopBlocking();
+                StopSelf();
+                return;
+            }
+
             var builder = new Builder(this)
                 .SetSession("KidsGuard")
                 .AddAddress(TunAddress, 32)
@@ -73,6 +81,34 @@ public sealed class KidsGuardVpnService : VpnService
                 // إغفال IPv6 يترك ثغرة يتسرّب منها الإنترنت.
                 .AddRoute("0.0.0.0", 0)
                 .AddRoute("::", 0);
+
+            // كلّ حزمة مُضافة إلى allowed توجَّه وحدها إلى النفق ثمّ تُسقَط،
+            // فيُحجب الإنترنت عنها وحدها ويبقى الباقي طبيعياً.
+            var added = 0;
+            foreach (var package in blocked)
+            {
+                try
+                {
+                    builder.AddAllowedApplication(package);
+                    added++;
+                    AppLog.Info(Tag, "blocking app: " + package);
+                }
+                catch (Exception ex)
+                {
+                    // حزمة أُلغي تثبيتها — نتخطّاها.
+                    AppLog.Warn(Tag, $"skip {package}: {ex.Message}");
+                }
+            }
+
+            // حارس ضدّ الانقلاب: لو لم تُضَف أي حزمة، سيُوجَّه كلّ الجهاز إلى النفق
+            // فينحجب الإنترنت كلّياً — عكس المقصود تماماً. نتوقّف بدل ذلك.
+            if (added == 0)
+            {
+                AppLog.Error(Tag, "none of the blocked apps are installed — aborting to avoid full block");
+                StopBlocking();
+                StopSelf();
+                return;
+            }
 
             _tunInterface = builder.Establish();
             if (_tunInterface is null)
@@ -85,17 +121,50 @@ public sealed class KidsGuardVpnService : VpnService
 
             _running = true;
             VpnController.SetRunning(true);
+            VpnController.LastAppliedSignature = VpnController.Signature(blocked);
 
             _drainThread = new Thread(DrainLoop) { IsBackground = true, Name = "kidsguard-vpn-drain" };
             _drainThread.Start();
 
-            AppLog.Warn(Tag, "internet blocking STARTED");
+            AppLog.Warn(Tag, $"per-app blocking STARTED for {added} app(s)");
         }
         catch (Exception ex)
         {
             AppLog.Error(Tag, "StartBlocking failed: " + ex);
             StopBlocking();
             StopSelf();
+        }
+    }
+
+    /// <summary>يُغلق واجهة TUN الحالية ويوقف خيط التصريف — تمهيداً لإعادة الإنشاء أو للإيقاف.</summary>
+    private void CloseInterface()
+    {
+        _running = false;
+
+        try
+        {
+            _tunInterface?.Close();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn(Tag, "closing tun failed: " + ex.Message);
+        }
+        finally
+        {
+            _tunInterface = null;
+        }
+
+        try
+        {
+            _drainThread?.Join(500);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn(Tag, "join drain thread failed: " + ex.Message);
+        }
+        finally
+        {
+            _drainThread = null;
         }
     }
 
@@ -135,37 +204,10 @@ public sealed class KidsGuardVpnService : VpnService
 
     private void StopBlocking()
     {
-        _running = false;
-
-        try
-        {
-            _tunInterface?.Close();
-        }
-        catch (Exception ex)
-        {
-            AppLog.Warn(Tag, "closing tun failed: " + ex.Message);
-        }
-        finally
-        {
-            _tunInterface = null;
-        }
-
-        try
-        {
-            _drainThread?.Join(500);
-        }
-        catch (Exception ex)
-        {
-            AppLog.Warn(Tag, "join drain thread failed: " + ex.Message);
-        }
-        finally
-        {
-            _drainThread = null;
-        }
-
+        CloseInterface();
         VpnController.SetRunning(false);
         StopForeground(StopForegroundFlags.Remove);
-        AppLog.Warn(Tag, "internet blocking STOPPED");
+        AppLog.Warn(Tag, "per-app blocking STOPPED");
     }
 
     public override void OnDestroy()

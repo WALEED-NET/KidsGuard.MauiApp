@@ -19,6 +19,13 @@ public static class VpnController
 
     internal static void SetRunning(bool value) => _running = value;
 
+    /// <summary>توقيع آخر قائمة حجب طُبِّقت فعلاً — تضبطه الخدمة بعد إنشاء النفق بنجاح.</summary>
+    public static string? LastAppliedSignature { get; internal set; }
+
+    /// <summary>توقيع مستقرّ لمجموعة الحزم — للمقارنة بين المطبَّق والمحفوظ.</summary>
+    public static string Signature(IEnumerable<string> packages) =>
+        string.Join(",", packages.OrderBy(p => p, StringComparer.Ordinal));
+
     /// <summary>
     /// يطلب موافقة النظام على تشغيل VPN.
     /// يُرجع <c>Intent</c> يجب تشغيله بـ StartActivityForResult حين تكون الموافقة مطلوبة،

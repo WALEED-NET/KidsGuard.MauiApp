@@ -11,16 +11,24 @@
     <string name="release_log_title">سجلّ آخر محاولة فكّ</string>
     <string name="release_log_empty">لم تُستدعَ بعد.</string>
 
-    <string name="vpn_section_title">حجب الإنترنت</string>
-    <string name="vpn_status_on">الإنترنت محجوب الآن</string>
-    <string name="vpn_status_off">الإنترنت مسموح</string>
-    <string name="vpn_btn_block">احجب الإنترنت</string>
-    <string name="vpn_btn_unblock">ارفع الحجب</string>
+    <string name="vpn_section_title">حجب الإنترنت عن تطبيقات</string>
+    <string name="vpn_status_on">الحجب مفعّل</string>
+    <string name="vpn_status_off">الحجب متوقّف</string>
+    <string name="vpn_btn_block">فعّل الحجب</string>
+    <string name="vpn_btn_unblock">أوقف الحجب</string>
     <string name="vpn_consent_denied">لم تُمنح موافقة الـ VPN — الحجب لم يبدأ</string>
+    <string name="vpn_need_selection">اختر تطبيقاً واحداً على الأقل لحجبه</string>
+    <string name="vpn_blocked_count">التطبيقات المحجوبة: {0}</string>
 
     <string name="vpn_channel_name">حالة الحجب</string>
-    <string name="vpn_notif_title">KidsGuard يحجب الإنترنت</string>
-    <string name="vpn_notif_text">الإنترنت محجوب على هذا الجهاز الآن.</string>
+    <string name="vpn_notif_title">KidsGuard — الحجب مفعّل</string>
+    <string name="vpn_notif_text">حجب الإنترنت عن التطبيقات المختارة فعّال الآن.</string>
+
+    <string name="apps_choose">اختر التطبيقات المحجوبة</string>
+    <string name="apps_title">التطبيقات</string>
+    <string name="apps_search_hint">ابحث عن تطبيق</string>
+    <string name="apps_loading">جارٍ تحميل التطبيقات…</string>
+    <string name="apps_count">المحجوب: {0} من {1}</string>
 
     <string name="log_open">عرض السجلّ ونسخه</string>
     <string name="log_title">سجلّ التطبيق</string>

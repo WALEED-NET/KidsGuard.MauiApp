@@ -65,13 +65,26 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="17sp"
+            android:paddingBottom="4dp" />
+
+        <TextView
+            android:id="@+id/vpn_blocked_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textColor="#88888888"
             android:paddingBottom="12dp" />
+
+        <Button
+            android:id="@+id/open_apps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/apps_choose" />
 
         <Button
             android:id="@+id/vpn_toggle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="4dp"
             android:paddingBottom="20dp" />
 
         <View

@@ -2,6 +2,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Widget;
+using KidsGuard.App.Apps;
 using KidsGuard.App.Logging;
 using KidsGuard.App.Security;
 using KidsGuard.App.Vpn;
@@ -16,6 +17,7 @@ public class MainActivity : Activity
     private const int RequestPostNotifications = 2;
 
     private ReleaseManager? _releaseManager;
+    private BlockedAppsStore? _blockedStore;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -24,9 +26,15 @@ public class MainActivity : Activity
         SetContentView(Resource.Layout.activity_main);
 
         _releaseManager = new ReleaseManager(this);
+        _blockedStore = new BlockedAppsStore(this);
 
         FindViewById<TextView>(Resource.Id.package_name)!.Text = PackageName;
         FindViewById<Button>(Resource.Id.vpn_toggle)!.Click += OnVpnToggleClicked;
+        FindViewById<Button>(Resource.Id.open_apps)!.Click += (_, _) =>
+        {
+            AppLog.Info(Tag, "open app list");
+            StartActivity(new Intent(this, typeof(AppListActivity)));
+        };
         FindViewById<Button>(Resource.Id.open_log)!.Click += (_, _) =>
         {
             AppLog.Info(Tag, "open log viewer");
@@ -70,13 +78,28 @@ public class MainActivity : Activity
     private void RefreshVpnStatus()
     {
         var running = VpnController.IsRunning;
-        AppLog.Info(Tag, $"vpn running={running}");
+        var count = _blockedStore?.Count ?? 0;
+        AppLog.Info(Tag, $"vpn running={running} blockedCount={count}");
 
         FindViewById<TextView>(Resource.Id.vpn_status)!.Text =
             GetString(running ? Resource.String.vpn_status_on : Resource.String.vpn_status_off);
 
+        FindViewById<TextView>(Resource.Id.vpn_blocked_count)!.Text =
+            string.Format(GetString(Resource.String.vpn_blocked_count), count);
+
         FindViewById<Button>(Resource.Id.vpn_toggle)!.Text =
             GetString(running ? Resource.String.vpn_btn_unblock : Resource.String.vpn_btn_block);
+
+        // لو تغيّرت القائمة بينما الحجب يعمل، نُعيد تطبيقها (الموافقة ممنوحة سلفاً).
+        if (running && _blockedStore is not null)
+        {
+            var signature = VpnController.Signature(_blockedStore.GetBlocked());
+            if (signature != VpnController.LastAppliedSignature)
+            {
+                AppLog.Info(Tag, "blocked list changed while running — re-applying");
+                VpnController.Start(this);
+            }
+        }
     }
 
     private void OnVpnToggleClicked(object? sender, EventArgs e)
@@ -90,6 +113,13 @@ public class MainActivity : Activity
         }
 
         AppLog.Info(Tag, "user tapped: start blocking");
+
+        if ((_blockedStore?.Count ?? 0) == 0)
+        {
+            AppLog.Warn(Tag, "start refused: no apps selected");
+            Toast.MakeText(this, Resource.String.vpn_need_selection, ToastLength.Long)!.Show();
+            return;
+        }
 
         // موافقة النظام على الـ VPN. null تعني ممنوحة سلفاً فنبدأ مباشرة.
         var consent = VpnController.PrepareConsent(this);
