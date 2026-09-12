@@ -97,5 +97,12 @@
             android:textDirection="ltr"
             android:text="@string/release_log_empty" />
 
+        <Button
+            android:id="@+id/open_log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/log_open" />
+
     </LinearLayout>
 </ScrollView>

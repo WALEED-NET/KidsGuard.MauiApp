@@ -4,6 +4,7 @@ using Android.Content.PM;
 using Android.Net;
 using Android.OS;
 using Java.IO;
+using KidsGuard.App.Logging;
 
 namespace KidsGuard.App.Vpn;
 
@@ -76,7 +77,7 @@ public sealed class KidsGuardVpnService : VpnService
             _tunInterface = builder.Establish();
             if (_tunInterface is null)
             {
-                Android.Util.Log.Error(Tag, "Establish() returned null - consent missing or another VPN active");
+                AppLog.Error(Tag, "Establish() returned null - consent missing or another VPN active");
                 StopBlocking();
                 StopSelf();
                 return;
@@ -88,11 +89,11 @@ public sealed class KidsGuardVpnService : VpnService
             _drainThread = new Thread(DrainLoop) { IsBackground = true, Name = "kidsguard-vpn-drain" };
             _drainThread.Start();
 
-            Android.Util.Log.Warn(Tag, "internet blocking STARTED");
+            AppLog.Warn(Tag, "internet blocking STARTED");
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Error(Tag, "StartBlocking failed: " + ex);
+            AppLog.Error(Tag, "StartBlocking failed: " + ex);
             StopBlocking();
             StopSelf();
         }
@@ -128,7 +129,7 @@ public sealed class KidsGuardVpnService : VpnService
         catch (Exception ex)
         {
             // الإغلاق أثناء القراءة يرمي استثناءً متوقّعاً — ليس خطأً.
-            Android.Util.Log.Info(Tag, "drain loop ended: " + ex.Message);
+            AppLog.Info(Tag, "drain loop ended: " + ex.Message);
         }
     }
 
@@ -142,7 +143,7 @@ public sealed class KidsGuardVpnService : VpnService
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Warn(Tag, "closing tun failed: " + ex.Message);
+            AppLog.Warn(Tag, "closing tun failed: " + ex.Message);
         }
         finally
         {
@@ -155,7 +156,7 @@ public sealed class KidsGuardVpnService : VpnService
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Warn(Tag, "join drain thread failed: " + ex.Message);
+            AppLog.Warn(Tag, "join drain thread failed: " + ex.Message);
         }
         finally
         {
@@ -164,7 +165,7 @@ public sealed class KidsGuardVpnService : VpnService
 
         VpnController.SetRunning(false);
         StopForeground(StopForegroundFlags.Remove);
-        Android.Util.Log.Warn(Tag, "internet blocking STOPPED");
+        AppLog.Warn(Tag, "internet blocking STOPPED");
     }
 
     public override void OnDestroy()
@@ -176,7 +177,7 @@ public sealed class KidsGuardVpnService : VpnService
     /// <summary>يُستدعى حين يفصل المستخدم الـ VPN من إعدادات النظام.</summary>
     public override void OnRevoke()
     {
-        Android.Util.Log.Warn(Tag, "VPN revoked from system settings");
+        AppLog.Warn(Tag, "VPN revoked from system settings");
         StopBlocking();
         StopSelf();
         base.OnRevoke();

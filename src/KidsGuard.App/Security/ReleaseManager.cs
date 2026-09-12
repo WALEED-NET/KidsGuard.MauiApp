@@ -1,4 +1,5 @@
 using Android.App.Admin;
+using KidsGuard.App.Logging;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
@@ -57,7 +58,7 @@ public sealed class ReleaseManager
             }
             catch (Exception ex)
             {
-                Android.Util.Log.Warn(Tag, "IsDeviceOwner check failed: " + ex.Message);
+                AppLog.Warn(Tag, "IsDeviceOwner check failed: " + ex.Message);
                 return false;
             }
         }
@@ -74,7 +75,7 @@ public sealed class ReleaseManager
             }
             catch (Exception ex)
             {
-                Android.Util.Log.Warn(Tag, "IsAdminActive check failed: " + ex.Message);
+                AppLog.Warn(Tag, "IsAdminActive check failed: " + ex.Message);
                 return false;
             }
         }
@@ -95,7 +96,7 @@ public sealed class ReleaseManager
         var order = 0;
         var startedAt = _timeProvider.GetUtcNow();
 
-        Android.Util.Log.Warn(Tag, FormattableString.Invariant(
+        AppLog.Warn(Tag, FormattableString.Invariant(
             $"=== ReleaseEverything START at {startedAt:O} (force={forceOwnershipRelease}) ==="));
 
         if (_dpm is null)
@@ -154,7 +155,7 @@ public sealed class ReleaseManager
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Error(Tag, name + " failed: " + ex);
+            AppLog.Error(Tag, name + " failed: " + ex);
             return new ReleaseStep(order, name, StepOutcome.Failed, ex.Message);
         }
     }
@@ -182,7 +183,7 @@ public sealed class ReleaseManager
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Error(Tag, name + " failed: " + ex);
+            AppLog.Error(Tag, name + " failed: " + ex);
             return new ReleaseStep(order, name, StepOutcome.Failed, ex.Message);
         }
     }
@@ -220,7 +221,7 @@ public sealed class ReleaseManager
             catch (Exception ex)
             {
                 // حزمة واحدة تعذّر فحصها لا تُسقط المسح كلّه.
-                Android.Util.Log.Warn(Tag, "suspend-check failed for " + packageName + ": " + ex.Message);
+                AppLog.Warn(Tag, "suspend-check failed for " + packageName + ": " + ex.Message);
             }
         }
 
@@ -237,7 +238,7 @@ public sealed class ReleaseManager
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Error(Tag, name + " failed: " + ex);
+            AppLog.Error(Tag, name + " failed: " + ex);
             return new ReleaseStep(order, name, StepOutcome.Failed, ex.Message);
         }
     }
@@ -261,7 +262,7 @@ public sealed class ReleaseManager
         }
         catch (Exception ex)
         {
-            Android.Util.Log.Error(Tag, name + " failed: " + ex);
+            AppLog.Error(Tag, name + " failed: " + ex);
             step = new ReleaseStep(order, name, StepOutcome.Failed, ex.Message);
             return false;
         }
@@ -273,10 +274,10 @@ public sealed class ReleaseManager
 
         foreach (var step in steps)
         {
-            Android.Util.Log.Info(Tag, step.ToString());
+            AppLog.Info(Tag, step.ToString());
         }
 
-        Android.Util.Log.Warn(Tag, FormattableString.Invariant(
+        AppLog.Warn(Tag, FormattableString.Invariant(
             $"=== ReleaseEverything END in {elapsed.TotalMilliseconds:F0}ms (released={ownershipReleased}, aborted={aborted}) ==="));
 
         return new ReleaseResult
