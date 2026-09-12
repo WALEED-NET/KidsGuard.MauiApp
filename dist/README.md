@@ -2,8 +2,8 @@
 
 | الحقل | القيمة |
 |-------|--------|
-| الملف | `KidsGuard-0.1.0-debug.apk` |
-| النسخة | `0.1.0` (debug، موقَّع بمفتاح التطوير) |
+| الملف | `KidsGuard-0.1.1-debug.apk` |
+| النسخة | `0.1.1` (debug، موقَّع بمفتاح التطوير، assemblies مُضمَّنة) |
 | `applicationId` | `com.kidsguard.app` |
 | `minSdk` / `targetSdk` | 26 / 36 |
 | `commit` | يُحدَّث مع كل رفع |
@@ -11,7 +11,7 @@
 ## التثبيت والتجربة
 
 ```
-adb install -r KidsGuard-0.1.0-debug.apk
+adb install -r KidsGuard-0.1.1-debug.apk
 ```
 
 `-r` يستبدل النسخة السابقة بلا حذف بياناتها.

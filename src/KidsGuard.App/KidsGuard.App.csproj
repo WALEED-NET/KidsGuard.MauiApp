@@ -29,4 +29,16 @@
     <AndroidLinkMode>None</AndroidLinkMode>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--
+      Debug الافتراضي في .NET for Android لا يُضمّن الـ assemblies داخل الـ APK —
+      يعتمد على Visual Studio أو "dotnet build -t:Install" لنسخها بخطوة نشر منفصلة
+      (Fast Deployment). حزمتنا تُبنى مرّة وتُوزَّع بـ adb install مباشرة على أجهزة
+      حقيقية بلا أي خطوة نشر لاحقة، فتفتح التطبيق ولا تجد شيئاً لتشغيله فينهار فوراً
+      بـ SIGABRT ("No assemblies found ... Assuming this is part of Fast Deployment").
+      نجبر التضمين في كل الإعدادات ليكون الـ APK قائماً بذاته دائماً.
+    -->
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+
 </Project>
