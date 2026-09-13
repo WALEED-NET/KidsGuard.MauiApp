@@ -17,7 +17,23 @@ public static class VpnController
 
     public static bool IsRunning => _running;
 
-    internal static void SetRunning(bool value) => _running = value;
+    /// <summary>
+    /// يُطلَق عند تغيّر حالة التشغيل فعلياً. الشاشة تشترك فيه لتحدّث نفسها لحظة
+    /// بدء الخدمة أو توقّفها — لأن VpnController.Start يرسل Intent ويعود فوراً،
+    /// فقراءة الحالة بعده مباشرة تسبق بدء الخدمة وتُظهر حالة خاطئة.
+    /// </summary>
+    public static event Action? RunningChanged;
+
+    internal static void SetRunning(bool value)
+    {
+        if (_running == value)
+        {
+            return;
+        }
+
+        _running = value;
+        RunningChanged?.Invoke();
+    }
 
     /// <summary>توقيع آخر قائمة حجب طُبِّقت فعلاً — تضبطه الخدمة بعد إنشاء النفق بنجاح.</summary>
     public static string? LastAppliedSignature { get; internal set; }

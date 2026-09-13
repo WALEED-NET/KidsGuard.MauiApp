@@ -43,6 +43,9 @@ public sealed class KidsGuardVpnService : VpnService
     private Thread? _drainThread;
     private volatile bool _running;
 
+    /// <summary>حارس ضدّ تنفيذ مسار الإيقاف مرّتين (StopSelf ثمّ OnDestroy).</summary>
+    private bool _stopped;
+
     public override StartCommandResult OnStartCommand(Intent? intent, StartCommandFlags flags, int startId)
     {
         if (intent?.Action == ActionStop)
@@ -59,6 +62,10 @@ public sealed class KidsGuardVpnService : VpnService
 
     private void StartBlocking()
     {
+        // إعادة التسليح: الخدمة قد تُستأنف على نفس النسخة عند إعادة تطبيق القائمة،
+        // فلو بقي الحارس مرفوعاً لتعذّر إيقافها لاحقاً.
+        _stopped = false;
+
         var showNotification = new AppSettings(this).ShowBlockingNotification;
         CreateNotificationChannels();
         StartForeground(NotificationId, BuildNotification(showNotification));
@@ -208,6 +215,14 @@ public sealed class KidsGuardVpnService : VpnService
 
     private void StopBlocking()
     {
+        // StopSelf يستدعي OnDestroy الذي يستدعي هذه الدالّة ثانيةً، فتُنفَّذ مرّتين
+        // لكلّ إيقاف. الحارس يجعلها عملية واحدة فعلياً وسطراً واحداً في السجلّ.
+        if (_stopped)
+        {
+            return;
+        }
+
+        _stopped = true;
         CloseInterface();
         VpnController.SetRunning(false);
         StopForeground(StopForegroundFlags.Remove);

@@ -59,8 +59,20 @@ public class MainActivity : Activity
     {
         base.OnResume();
         AppLog.Info(Tag, "OnResume");
+
+        // الاشتراك أثناء الظهور فقط — الحدث ثابت (static) فبقاء الاشتراك بعد
+        // الإخفاء يُبقي مرجعاً للـ Activity ويُسرّب الذاكرة.
+        VpnController.RunningChanged += OnVpnRunningChanged;
         RefreshStatus();
     }
+
+    protected override void OnPause()
+    {
+        VpnController.RunningChanged -= OnVpnRunningChanged;
+        base.OnPause();
+    }
+
+    private void OnVpnRunningChanged() => RunOnUiThread(RefreshVpnStatus);
 
     /// <summary>
     /// تُقرأ الحالة من النظام في كل ظهور للشاشة لا مرّة واحدة عند الإنشاء،
