@@ -6,19 +6,17 @@ using Android.OS;
 using Java.IO;
 using KidsGuard.App.Apps;
 using KidsGuard.App.Logging;
+using KidsGuard.App.Settings;
 
 namespace KidsGuard.App.Vpn;
 
 /// <summary>
-/// حجب الإنترنت محلياً عبر VpnService. تنشئ واجهة TUN توجّه كلّ حركة IPv4 و IPv6
-/// إلى داخلها ثمّ تُسقطها بلا تمرير — فينقطع الإنترنت كليّاً ما دامت الخدمة تعمل.
+/// حجب الإنترنت عن تطبيقات مختارة عبر VpnService محلّي. الحزم المحجوبة وحدها تُوجَّه
+/// إلى نفق TUN ثمّ تُسقَط حزمها، فينقطع إنترنتها ويبقى باقي الجهاز طبيعياً.
 ///
 /// لا تحتاج Device Owner: الموافقة من المستخدم عبر VpnService.Prepare. سلبيّتها أنّ
 /// المستخدم يقدر فصلها من إعدادات النظام؛ منعُ ذلك يأتي لاحقاً بـ setAlwaysOnVpnPackage
 /// مع lockdown من Device Owner (المرحلة 2).
-///
-/// هذه نسخة "احجب الكلّ". فلترة النطاقات بـ DNS (المرحلة 5 الكاملة) تُبنى فوق
-/// نفس البنية: تُستبدل حلقة الإسقاط بحلقة تقرأ حزم DNS وتفلترها.
 /// </summary>
 [Service(
     Permission = "android.permission.BIND_VPN_SERVICE",
@@ -31,7 +29,11 @@ public sealed class KidsGuardVpnService : VpnService
     public const string ActionStop = "com.kidsguard.app.action.VPN_STOP";
 
     private const string Tag = "KidsGuard.Vpn";
-    private const string ChannelId = "kidsguard_vpn_status";
+
+    // قناتان لأنّ أهمية القناة لا تتغيّر بعد إنشائها برمجياً — فنحتاج واحدة ظاهرة
+    // وأخرى بأدنى أهمية، ونختار بينهما حسب إعداد المستخدم.
+    private const string ChannelVisible = "kidsguard_vpn_status";
+    private const string ChannelSilent = "kidsguard_vpn_silent";
     private const int NotificationId = 1001;
 
     // عنوان خاصّ داخل واجهة TUN — لا يخرج إلى الشبكة، مجرّد طرف للنفق.
@@ -57,8 +59,10 @@ public sealed class KidsGuardVpnService : VpnService
 
     private void StartBlocking()
     {
-        CreateNotificationChannel();
-        StartForeground(NotificationId, BuildNotification());
+        var showNotification = new AppSettings(this).ShowBlockingNotification;
+        CreateNotificationChannels();
+        StartForeground(NotificationId, BuildNotification(showNotification));
+        AppLog.Info(Tag, $"foreground started (notification visible = {showNotification})");
 
         // نُعيد الإنشاء دائماً عند ActionStart لتُطبَّق أي تغييرات في قائمة الحجب.
         CloseInterface();
@@ -136,38 +140,6 @@ public sealed class KidsGuardVpnService : VpnService
         }
     }
 
-    /// <summary>يُغلق واجهة TUN الحالية ويوقف خيط التصريف — تمهيداً لإعادة الإنشاء أو للإيقاف.</summary>
-    private void CloseInterface()
-    {
-        _running = false;
-
-        try
-        {
-            _tunInterface?.Close();
-        }
-        catch (Exception ex)
-        {
-            AppLog.Warn(Tag, "closing tun failed: " + ex.Message);
-        }
-        finally
-        {
-            _tunInterface = null;
-        }
-
-        try
-        {
-            _drainThread?.Join(500);
-        }
-        catch (Exception ex)
-        {
-            AppLog.Warn(Tag, "join drain thread failed: " + ex.Message);
-        }
-        finally
-        {
-            _drainThread = null;
-        }
-    }
-
     /// <summary>
     /// تقرأ الحزم الواردة من واجهة TUN وتُسقطها دون تمرير. القراءة تحجب الخيط
     /// حتى يُغلَق الواصف عند الإيقاف، فتخرج الحلقة بأمان.
@@ -202,6 +174,38 @@ public sealed class KidsGuardVpnService : VpnService
         }
     }
 
+    /// <summary>يُغلق واجهة TUN الحالية ويوقف خيط التصريف — تمهيداً لإعادة الإنشاء أو للإيقاف.</summary>
+    private void CloseInterface()
+    {
+        _running = false;
+
+        try
+        {
+            _tunInterface?.Close();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn(Tag, "closing tun failed: " + ex.Message);
+        }
+        finally
+        {
+            _tunInterface = null;
+        }
+
+        try
+        {
+            _drainThread?.Join(500);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warn(Tag, "join drain thread failed: " + ex.Message);
+        }
+        finally
+        {
+            _drainThread = null;
+        }
+    }
+
     private void StopBlocking()
     {
         CloseInterface();
@@ -225,7 +229,7 @@ public sealed class KidsGuardVpnService : VpnService
         base.OnRevoke();
     }
 
-    private void CreateNotificationChannel()
+    private void CreateNotificationChannels()
     {
         var manager = (NotificationManager?)GetSystemService(NotificationService);
         if (manager is null)
@@ -233,23 +237,33 @@ public sealed class KidsGuardVpnService : VpnService
             return;
         }
 
-        var name = GetString(Resource.String.vpn_channel_name);
-        var channel = new NotificationChannel(ChannelId, name, NotificationImportance.Low)
-        {
-            Description = name
-        };
-        manager.CreateNotificationChannel(channel);
+        var visible = new NotificationChannel(
+            ChannelVisible,
+            GetString(Resource.String.vpn_channel_name),
+            NotificationImportance.Low);
+        manager.CreateNotificationChannel(visible);
+
+        // Min: بلا صوت، ولا إشعار منبثق، ولا أيقونة في شريط الحالة.
+        var silent = new NotificationChannel(
+            ChannelSilent,
+            GetString(Resource.String.vpn_channel_silent_name),
+            NotificationImportance.Min);
+        silent.SetShowBadge(false);
+        manager.CreateNotificationChannel(silent);
     }
 
-    private Notification BuildNotification()
+    private Notification BuildNotification(bool visible)
     {
-        // النقر على الإشعار يفتح الشاشة الرئيسية — شفافية: الطفل يرى أنّ الحجب فعّال.
+        // النقر على الإشعار يفتح الشاشة الرئيسية.
         var launch = new Intent(this, typeof(MainActivity));
         launch.AddFlags(ActivityFlags.SingleTop);
         var pending = PendingIntent.GetActivity(
             this, 0, launch, PendingIntentFlags.Immutable | PendingIntentFlags.UpdateCurrent);
 
-        return new Notification.Builder(this, ChannelId)
+        // الإسكات كلّه محكوم بأهمية القناة (Min) لا بخصائص الإشعار:
+        // من API 26 فأعلى، القناة هي التي تقرّر الصوت والظهور المنبثق وأيقونة شريط
+        // الحالة — وminSdk عندنا 26، فاختيار القناة وحده كافٍ.
+        return new Notification.Builder(this, visible ? ChannelVisible : ChannelSilent)
             .SetContentTitle(GetString(Resource.String.vpn_notif_title))
             .SetContentText(GetString(Resource.String.vpn_notif_text))
             .SetSmallIcon(Android.Resource.Drawable.IcLockLock)

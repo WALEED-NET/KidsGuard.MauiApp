@@ -1,10 +1,12 @@
 using Android.Content;
 using Android.Content.PM;
+using Android.Graphics;
 using Android.OS;
 using Android.Widget;
 using KidsGuard.App.Apps;
 using KidsGuard.App.Logging;
 using KidsGuard.App.Security;
+using KidsGuard.App.Settings;
 using KidsGuard.App.Vpn;
 
 namespace KidsGuard.App;
@@ -18,6 +20,10 @@ public class MainActivity : Activity
 
     private ReleaseManager? _releaseManager;
     private BlockedAppsStore? _blockedStore;
+    private AppSettings? _settings;
+
+    // تعيين Checked برمجياً يُطلق CheckedChange — نكتمه أثناء التحديث.
+    private bool _suppressSwitchEvent;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -27,19 +33,24 @@ public class MainActivity : Activity
 
         _releaseManager = new ReleaseManager(this);
         _blockedStore = new BlockedAppsStore(this);
+        _settings = new AppSettings(this);
 
         FindViewById<TextView>(Resource.Id.package_name)!.Text = PackageName;
         FindViewById<Button>(Resource.Id.vpn_toggle)!.Click += OnVpnToggleClicked;
+
         FindViewById<Button>(Resource.Id.open_apps)!.Click += (_, _) =>
         {
             AppLog.Info(Tag, "open app list");
             StartActivity(new Intent(this, typeof(AppListActivity)));
         };
+
         FindViewById<Button>(Resource.Id.open_log)!.Click += (_, _) =>
         {
             AppLog.Info(Tag, "open log viewer");
             StartActivity(new Intent(this, typeof(LogViewerActivity)));
         };
+
+        FindViewById<Switch>(Resource.Id.notif_switch)!.CheckedChange += OnNotificationSwitchChanged;
 
         RequestNotificationsIfNeeded();
     }
@@ -66,13 +77,21 @@ public class MainActivity : Activity
         var isOwner = _releaseManager.IsDeviceOwner;
         AppLog.Info(Tag, $"status: admin={isAdmin} owner={isOwner}");
 
-        FindViewById<TextView>(Resource.Id.status_admin)!.Text =
-            GetString(isAdmin ? Resource.String.status_admin_yes : Resource.String.status_admin_no);
-
-        FindViewById<TextView>(Resource.Id.status_owner)!.Text =
-            GetString(isOwner ? Resource.String.status_owner_yes : Resource.String.status_owner_no);
+        SetPill(Resource.Id.status_admin, isAdmin);
+        SetPill(Resource.Id.status_owner, isOwner);
 
         RefreshVpnStatus();
+    }
+
+    /// <summary>يضبط شارة الحالة: خضراء لـ«نعم» ورمادية لـ«لا».</summary>
+    private void SetPill(int viewId, bool value)
+    {
+        var pill = FindViewById<TextView>(viewId)!;
+        pill.Text = GetString(value ? Resource.String.status_yes : Resource.String.status_no);
+        pill.SetBackgroundResource(value ? Resource.Drawable.pill_yes : Resource.Drawable.pill_no);
+        pill.SetTextColor(value
+            ? Color.ParseColor("#16A34A")
+            : Color.ParseColor("#64748B"));
     }
 
     private void RefreshVpnStatus()
@@ -87,8 +106,15 @@ public class MainActivity : Activity
         FindViewById<TextView>(Resource.Id.vpn_blocked_count)!.Text =
             string.Format(GetString(Resource.String.vpn_blocked_count), count);
 
-        FindViewById<Button>(Resource.Id.vpn_toggle)!.Text =
-            GetString(running ? Resource.String.vpn_btn_unblock : Resource.String.vpn_btn_block);
+        var toggle = FindViewById<Button>(Resource.Id.vpn_toggle)!;
+        toggle.Text = GetString(running ? Resource.String.vpn_btn_unblock : Resource.String.vpn_btn_block);
+        toggle.SetBackgroundResource(running ? Resource.Drawable.btn_danger : Resource.Drawable.btn_primary);
+        toggle.SetTextColor(Color.White);
+
+        var notifSwitch = FindViewById<Switch>(Resource.Id.notif_switch)!;
+        _suppressSwitchEvent = true;
+        notifSwitch.Checked = _settings?.ShowBlockingNotification ?? true;
+        _suppressSwitchEvent = false;
 
         // لو تغيّرت القائمة بينما الحجب يعمل، نُعيد تطبيقها (الموافقة ممنوحة سلفاً).
         if (running && _blockedStore is not null)
@@ -99,6 +125,23 @@ public class MainActivity : Activity
                 AppLog.Info(Tag, "blocked list changed while running — re-applying");
                 VpnController.Start(this);
             }
+        }
+    }
+
+    private void OnNotificationSwitchChanged(object? sender, CompoundButton.CheckedChangeEventArgs e)
+    {
+        if (_suppressSwitchEvent || _settings is null)
+        {
+            return;
+        }
+
+        _settings.ShowBlockingNotification = e.IsChecked;
+
+        // إعادة بناء الإشعار تحتاج إعادة تشغيل الخدمة — فقط إن كان الحجب يعمل.
+        if (VpnController.IsRunning)
+        {
+            AppLog.Info(Tag, "notification setting changed while running — re-applying");
+            VpnController.Start(this);
         }
     }
 
@@ -166,8 +209,7 @@ public class MainActivity : Activity
 
     private void RequestNotificationsIfNeeded()
     {
-        // POST_NOTIFICATIONS مطلوب من API 33 لإظهار إشعار الخدمة (شفافية للطفل).
-        // غيابه لا يمنع الحجب، لكنه يُخفي الإشعار الدالّ على أنّه فعّال.
+        // POST_NOTIFICATIONS مطلوب من API 33 لإظهار إشعار الخدمة.
         // OperatingSystem.IsAndroidVersionAtLeast صيغة يفهمها محلّل CA1416.
         if (!OperatingSystem.IsAndroidVersionAtLeast(33))
         {

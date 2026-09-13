@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <!-- عنوان قسم داخل بطاقة -->
+    <style name="SectionTitle">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+
+    <!-- تسمية صف (يمين) -->
+    <style name="RowLabel">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- زرّ أساسيّ مملوء -->
+    <style name="BtnPrimary">
+        <item name="android:background">@drawable/btn_primary</item>
+        <item name="android:textColor">@color/on_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:minHeight">50dp</item>
+    </style>
+
+    <!-- زرّ ثانويّ محدَّد بإطار -->
+    <style name="BtnSecondary">
+        <item name="android:background">@drawable/btn_secondary</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:minHeight">50dp</item>
+    </style>
+
+    <!-- زرّ خطر (إيقاف الحجب) -->
+    <style name="BtnDanger">
+        <item name="android:background">@drawable/btn_danger</item>
+        <item name="android:textColor">@color/on_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:minHeight">50dp</item>
+    </style>
+
+    <!-- زرّ صغير في شريط الأدوات -->
+    <style name="BtnCompact">
+        <item name="android:background">@drawable/btn_secondary</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+    </style>
+
+</resources>

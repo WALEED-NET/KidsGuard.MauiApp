@@ -3,10 +3,11 @@
     <string name="app_name">KidsGuard</string>
     <string name="device_admin_label">KidsGuard</string>
 
-    <string name="status_admin_yes">مُفعَّل كـ Device Admin: نعم</string>
-    <string name="status_admin_no">مُفعَّل كـ Device Admin: لا</string>
-    <string name="status_owner_yes">Device Owner: نعم</string>
-    <string name="status_owner_no">Device Owner: لا</string>
+    <string name="section_permissions">حالة الصلاحيات</string>
+    <string name="label_device_admin">Device Admin</string>
+    <string name="label_device_owner">Device Owner</string>
+    <string name="status_yes">نعم</string>
+    <string name="status_no">لا</string>
 
     <string name="release_log_title">سجلّ آخر محاولة فكّ</string>
     <string name="release_log_empty">لم تُستدعَ بعد.</string>
@@ -20,15 +21,22 @@
     <string name="vpn_need_selection">اختر تطبيقاً واحداً على الأقل لحجبه</string>
     <string name="vpn_blocked_count">التطبيقات المحجوبة: {0}</string>
 
+    <string name="notif_switch_label">إظهار إشعار الحجب</string>
+    <string name="notif_switch_hint">أيقونة VPN في شريط الحالة يفرضها النظام ولا يمكن إخفاؤها</string>
+
     <string name="vpn_channel_name">حالة الحجب</string>
+    <string name="vpn_channel_silent_name">حالة الحجب (صامت)</string>
     <string name="vpn_notif_title">KidsGuard — الحجب مفعّل</string>
     <string name="vpn_notif_text">حجب الإنترنت عن التطبيقات المختارة فعّال الآن.</string>
 
     <string name="apps_choose">اختر التطبيقات المحجوبة</string>
     <string name="apps_title">التطبيقات</string>
-    <string name="apps_search_hint">ابحث عن تطبيق</string>
+    <string name="apps_search_hint">ابحث عن تطبيق…</string>
     <string name="apps_loading">جارٍ تحميل التطبيقات…</string>
     <string name="apps_count">المحجوب: {0} من {1}</string>
+    <string name="apps_select_all">تحديد الكلّ</string>
+    <string name="apps_clear_all">إلغاء التحديد</string>
+    <string name="apps_select_all_filtered">حُدّد {0} تطبيقاً</string>
 
     <string name="log_open">عرض السجلّ ونسخه</string>
     <string name="log_title">سجلّ التطبيق</string>

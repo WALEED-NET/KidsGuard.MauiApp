@@ -7,6 +7,6 @@
   <!-- API 30+ يخفي قائمة التطبيقات الأخرى بلا هذا الإذن، فتُعرض قائمة ناقصة صامتة.
        مبرَّر لتطبيق رقابة، ولا سياسة Play علينا (توزيع APK مباشر). -->
   <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-  <application android:allowBackup="true" android:icon="@mipmap/appicon" android:label="@string/app_name" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true">
+  <application android:allowBackup="true" android:icon="@mipmap/appicon" android:label="@string/app_name" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true" android:theme="@style/AppTheme">
   </application>
 </manifest>

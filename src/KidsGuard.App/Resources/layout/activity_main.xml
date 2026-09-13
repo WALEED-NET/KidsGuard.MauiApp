@@ -1,121 +1,255 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:background="@color/bg">
 
+    <!-- الترويسة -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:background="@color/primary"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="22dp"
+        android:paddingBottom="22dp">
 
         <TextView
-            android:id="@+id/title"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
-            android:textSize="28sp"
+            android:textSize="26sp"
             android:textStyle="bold"
-            android:paddingBottom="4dp" />
+            android:textColor="@color/on_primary" />
 
         <TextView
             android:id="@+id/package_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:paddingBottom="20dp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#33888888" />
-
-        <TextView
-            android:id="@+id/status_admin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="17sp"
-            android:paddingTop="18dp"
-            android:paddingBottom="6dp" />
-
-        <TextView
-            android:id="@+id/status_owner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="17sp"
-            android:paddingBottom="20dp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#33888888" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/vpn_section_title"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:paddingTop="18dp"
-            android:paddingBottom="8dp" />
-
-        <TextView
-            android:id="@+id/vpn_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="17sp"
-            android:paddingBottom="4dp" />
-
-        <TextView
-            android:id="@+id/vpn_blocked_count"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:textColor="#88888888"
-            android:paddingBottom="12dp" />
-
-        <Button
-            android:id="@+id/open_apps"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/apps_choose" />
-
-        <Button
-            android:id="@+id/vpn_toggle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="20dp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#33888888" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/release_log_title"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:paddingTop="18dp"
-            android:paddingBottom="8dp" />
-
-        <TextView
-            android:id="@+id/release_log"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:fontFamily="monospace"
+            android:textColor="#CBD5E1"
             android:textDirection="ltr"
-            android:text="@string/release_log_empty" />
-
-        <Button
-            android:id="@+id/open_log"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/log_open" />
+            android:paddingTop="2dp" />
 
     </LinearLayout>
-</ScrollView>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- بطاقة: حالة الصلاحيات -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="20dp">
+
+                <TextView
+                    style="@style/SectionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/section_permissions" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingBottom="10dp"
+                    android:baselineAligned="false">
+
+                    <TextView
+                        style="@style/RowLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/label_device_admin" />
+
+                    <TextView
+                        android:id="@+id/status_admin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/pill_no"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:baselineAligned="false">
+
+                    <TextView
+                        style="@style/RowLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/label_device_owner" />
+
+                    <TextView
+                        android:id="@+id/status_owner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/pill_no"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- بطاقة: الحجب -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="20dp"
+                android:layout_marginTop="14dp">
+
+                <TextView
+                    style="@style/SectionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vpn_section_title" />
+
+                <TextView
+                    android:id="@+id/vpn_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/vpn_blocked_count"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="18dp" />
+
+                <Button
+                    android:id="@+id/open_apps"
+                    style="@style/BtnSecondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/apps_choose" />
+
+                <Button
+                    android:id="@+id/vpn_toggle"
+                    style="@style/BtnPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="14dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:baselineAligned="false">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/notif_switch_label"
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/notif_switch_hint"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_muted"
+                            android:paddingTop="2dp" />
+
+                    </LinearLayout>
+
+                    <Switch
+                        android:id="@+id/notif_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- بطاقة: السجلّ -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="20dp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    style="@style/SectionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/release_log_title" />
+
+                <TextView
+                    android:id="@+id/release_log"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace"
+                    android:textDirection="ltr"
+                    android:textColor="@color/text_secondary"
+                    android:text="@string/release_log_empty"
+                    android:paddingBottom="16dp" />
+
+                <Button
+                    android:id="@+id/open_log"
+                    style="@style/BtnSecondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/log_open" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

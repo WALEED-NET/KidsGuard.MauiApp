@@ -33,6 +33,9 @@ public class AppListActivity : Activity
         var list = FindViewById<ListView>(Resource.Id.app_list)!;
         list.ItemClick += OnItemClicked;
 
+        FindViewById<Button>(Resource.Id.select_all)!.Click += (_, _) => SetAllShown(true);
+        FindViewById<Button>(Resource.Id.clear_all)!.Click += (_, _) => SetAllShown(false);
+
         SetCountText(GetString(Resource.String.apps_loading));
         LoadAppsAsync();
     }
@@ -75,6 +78,50 @@ public class AppListActivity : Activity
         _store.SetBlocked(app.PackageName, nowBlocked);
         _adapter.NotifyDataSetChanged();
         UpdateCount();
+    }
+
+    /// <summary>
+    /// يطبّق الاختيار على التطبيقات **الظاهرة حالياً** لا على الكلّ دائماً —
+    /// فلو كان هناك بحث فعّال، «تحديد الكلّ» يشمل نتيجة البحث وحدها. هذا أقرب
+    /// لتوقّع المستخدم: ما يراه هو ما يتغيّر.
+    /// </summary>
+    private void SetAllShown(bool blocked)
+    {
+        if (_adapter is null || _store is null)
+        {
+            return;
+        }
+
+        var changed = 0;
+        foreach (var app in _adapter.ShownApps)
+        {
+            var already = _blocked.Contains(app.PackageName);
+            if (already == blocked)
+            {
+                continue;
+            }
+
+            if (blocked)
+            {
+                _blocked.Add(app.PackageName);
+            }
+            else
+            {
+                _blocked.Remove(app.PackageName);
+            }
+
+            _store.SetBlocked(app.PackageName, blocked);
+            changed++;
+        }
+
+        AppLog.Info(Tag, $"bulk {(blocked ? "select" : "clear")}: {changed} app(s) changed");
+        _adapter.NotifyDataSetChanged();
+        UpdateCount();
+
+        Toast.MakeText(
+            this,
+            string.Format(GetString(Resource.String.apps_select_all_filtered), changed),
+            ToastLength.Short)!.Show();
     }
 
     private void UpdateCount() =>

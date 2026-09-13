@@ -26,6 +26,12 @@ public sealed class AppListAdapter : BaseAdapter<InstalledApp>
         _blocked = blocked;
     }
 
+    /// <summary>
+    /// التطبيقات الظاهرة حالياً بعد تطبيق البحث — يستعملها «تحديد الكلّ»
+    /// ليقتصر على ما يراه المستخدم لا على القائمة كاملة.
+    /// </summary>
+    public IReadOnlyList<InstalledApp> ShownApps => _shown;
+
     public void Filter(string? query)
     {
         _shown = string.IsNullOrWhiteSpace(query)

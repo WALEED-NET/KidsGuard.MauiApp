@@ -3,32 +3,96 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:background="@color/bg">
 
-    <EditText
-        android:id="@+id/app_search"
+    <!-- الترويسة -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/apps_search_hint"
-        android:inputType="text"
-        android:maxLines="1"
-        android:importantForAutofill="no" />
+        android:orientation="vertical"
+        android:background="@color/primary"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp">
 
-    <TextView
-        android:id="@+id/app_count"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/apps_choose"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:textColor="@color/on_primary" />
+
+        <TextView
+            android:id="@+id/app_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textColor="#CBD5E1"
+            android:paddingTop="3dp" />
+
+    </LinearLayout>
+
+    <!-- البحث + تحديد الكلّ -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:textStyle="bold"
-        android:textSize="14sp" />
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/app_search"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_search"
+            android:hint="@string/apps_search_hint"
+            android:textColorHint="@color/text_muted"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:importantForAutofill="no" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="12dp">
+
+            <Button
+                android:id="@+id/select_all"
+                style="@style/BtnCompact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/apps_select_all" />
+
+            <Button
+                android:id="@+id/clear_all"
+                style="@style/BtnCompact"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:text="@string/apps_clear_all" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 
     <ListView
         android:id="@+id/app_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:divider="#22888888"
-        android:dividerHeight="1dp" />
+        android:background="@color/surface"
+        android:divider="@color/divider"
+        android:dividerHeight="1dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:scrollbarStyle="outsideOverlay" />
 
 </LinearLayout>
