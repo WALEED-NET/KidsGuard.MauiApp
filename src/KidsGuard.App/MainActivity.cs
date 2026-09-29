@@ -52,6 +52,9 @@ public class MainActivity : Activity
 
         FindViewById<Switch>(Resource.Id.notif_switch)!.CheckedChange += OnNotificationSwitchChanged;
 
+        FindViewById<Button>(Resource.Id.set_pin)!.Click += (_, _) => ShowSetPinDialog();
+        FindViewById<Button>(Resource.Id.release_now)!.Click += (_, _) => ConfirmAndRelease();
+
         RequestNotificationsIfNeeded();
     }
 
@@ -92,6 +95,7 @@ public class MainActivity : Activity
         SetPill(Resource.Id.status_admin, isAdmin);
         SetPill(Resource.Id.status_owner, isOwner);
 
+        RefreshPinState();
         RefreshVpnStatus();
     }
 
@@ -227,6 +231,108 @@ public class MainActivity : Activity
             AppLog.Warn(Tag, "vpn consent denied");
             Toast.MakeText(this, Resource.String.vpn_consent_denied, ToastLength.Long)!.Show();
         }
+    }
+
+    private void RefreshPinState()
+    {
+        var hasPin = new PinStore(this).HasPin;
+
+        var state = FindViewById<TextView>(Resource.Id.pin_state)!;
+        state.Text = GetString(hasPin ? Resource.String.pin_present : Resource.String.pin_missing_warning);
+        state.SetTextColor(hasPin ? Color.ParseColor("#16A34A") : Color.ParseColor("#DC2626"));
+
+        FindViewById<Button>(Resource.Id.set_pin)!.Text =
+            GetString(hasPin ? Resource.String.pin_change_btn : Resource.String.pin_set_btn);
+    }
+
+    private EditText BuildPinInput()
+    {
+        var input = new EditText(this)
+        {
+            InputType = Android.Text.InputTypes.ClassNumber | Android.Text.InputTypes.NumberVariationPassword
+        };
+        input.SetHint(Resource.String.pin_hint);
+        return input;
+    }
+
+    private void ShowSetPinDialog()
+    {
+        var input = BuildPinInput();
+
+        new AlertDialog.Builder(this)!
+            .SetTitle(Resource.String.pin_set_title)!
+            .SetView(input)!
+            .SetPositiveButton(Resource.String.btn_ok, (_, _) =>
+            {
+                var pin = input.Text ?? string.Empty;
+                if (pin.Length < PinStore.MinLength)
+                {
+                    Toast.MakeText(this, Resource.String.pin_too_short, ToastLength.Long)!.Show();
+                    return;
+                }
+
+                new PinStore(this).SetPin(pin);
+                Toast.MakeText(this, Resource.String.pin_saved, ToastLength.Short)!.Show();
+                RefreshPinState();
+            })!
+            .SetNegativeButton(Resource.String.btn_cancel, (_, _) => { })!
+            .Show();
+    }
+
+    private void ConfirmAndRelease()
+    {
+        var pinStore = new PinStore(this);
+
+        // لا رمز محفوظ = نمضي إلى التأكيد مباشرة. رفض الفكّ لغياب الرمز
+        // يقلب مخرج الطوارئ إلى قفل، وهو عكس الغرض منه تماماً.
+        if (!pinStore.HasPin)
+        {
+            AppLog.Warn(Tag, "release requested while no PIN is set");
+            ShowReleaseConfirm();
+            return;
+        }
+
+        var input = BuildPinInput();
+
+        new AlertDialog.Builder(this)!
+            .SetTitle(Resource.String.pin_enter_title)!
+            .SetView(input)!
+            .SetPositiveButton(Resource.String.btn_ok, (_, _) =>
+            {
+                if (!pinStore.Verify(input.Text ?? string.Empty))
+                {
+                    AppLog.Warn(Tag, "release refused: wrong PIN");
+                    Toast.MakeText(this, Resource.String.pin_wrong, ToastLength.Long)!.Show();
+                    return;
+                }
+
+                ShowReleaseConfirm();
+            })!
+            .SetNegativeButton(Resource.String.btn_cancel, (_, _) => { })!
+            .Show();
+    }
+
+    private void ShowReleaseConfirm() =>
+        new AlertDialog.Builder(this)!
+            .SetTitle(Resource.String.release_confirm_title)!
+            .SetMessage(Resource.String.release_confirm_msg)!
+            .SetPositiveButton(Resource.String.btn_ok, (_, _) => PerformRelease())!
+            .SetNegativeButton(Resource.String.btn_cancel, (_, _) => { })!
+            .Show();
+
+    private void PerformRelease()
+    {
+        AppLog.Warn(Tag, "RELEASE requested from main screen");
+
+        var result = _releaseManager!.ReleaseEverything();
+        FindViewById<TextView>(Resource.Id.release_log)!.Text = result.ToLogText();
+
+        Toast.MakeText(
+            this,
+            result.HasFailures ? Resource.String.release_partial : Resource.String.release_done,
+            ToastLength.Long)!.Show();
+
+        RefreshStatus();
     }
 
     private void RequestNotificationsIfNeeded()

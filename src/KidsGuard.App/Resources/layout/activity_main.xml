@@ -226,6 +226,40 @@
                     style="@style/SectionTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/release_section_title" />
+
+                <TextView
+                    android:id="@+id/pin_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:paddingBottom="14dp" />
+
+                <Button
+                    android:id="@+id/set_pin"
+                    style="@style/BtnSecondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/release_now"
+                    style="@style/BtnDanger"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/release_btn" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginBottom="14dp" />
+
+                <TextView
+                    style="@style/SectionTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="@string/release_log_title" />
 
                 <TextView

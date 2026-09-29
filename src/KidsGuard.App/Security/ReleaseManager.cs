@@ -1,5 +1,7 @@
 using Android.App.Admin;
 using KidsGuard.App.Logging;
+using KidsGuard.App.Settings;
+using KidsGuard.App.Vpn;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
@@ -99,6 +101,12 @@ public sealed class ReleaseManager
         AppLog.Warn(Tag, FormattableString.Invariant(
             $"=== ReleaseEverything START at {startedAt:O} (force={forceOwnershipRelease}) ==="));
 
+        // 0) خطوات لا تحتاج Device Owner إطلاقاً — تُنفَّذ دائماً وأوّلاً.
+        // بدونها يضغط الوالد «فكّ الحماية» بلا ملكية فيخرج المسار مبكراً،
+        // ويبقى إنترنت الطفل مقطوعاً ويعود الحجب بعد كل إقلاع.
+        steps.Add(ClearBlockingIntent(++order));
+        steps.Add(StopVpnBlocking(++order));
+
         if (_dpm is null)
         {
             steps.Add(new ReleaseStep(++order, "resolve-device-policy-service", StepOutcome.Failed,
@@ -109,7 +117,7 @@ public sealed class ReleaseManager
         if (!IsDeviceOwner)
         {
             steps.Add(new ReleaseStep(++order, "verify-device-owner", StepOutcome.Skipped,
-                "app is not device owner - nothing to release"));
+                "app is not device owner - no ownership to relinquish"));
             return Finish(steps, ownershipReleased: false, aborted: false, startedAt);
         }
 
@@ -143,6 +151,52 @@ public sealed class ReleaseManager
         steps.Add(ownershipStep);
 
         return Finish(steps, released, aborted: false, startedAt);
+    }
+
+    /// <summary>
+    /// يُلغي نيّة الحجب المحفوظة على القرص. بدون هذه الخطوة يُعيد BootReceiver
+    /// تشغيل الحجب بعد أوّل إقلاع رغم أنّ الوالد فكّ الحماية.
+    /// </summary>
+    private ReleaseStep ClearBlockingIntent(int order)
+    {
+        const string name = "clear-blocking-intent";
+        try
+        {
+            var settings = new AppSettings(_context);
+            if (!settings.BlockingEnabled)
+            {
+                return new ReleaseStep(order, name, StepOutcome.Skipped, "blocking intent already cleared");
+            }
+
+            settings.BlockingEnabled = false;
+            return new ReleaseStep(order, name, StepOutcome.Succeeded, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error(Tag, name + " failed: " + ex);
+            return new ReleaseStep(order, name, StepOutcome.Failed, ex.Message);
+        }
+    }
+
+    /// <summary>يوقف نفق الحجب الجاري — لا يحتاج Device Owner، فالخدمة خدمتنا.</summary>
+    private ReleaseStep StopVpnBlocking(int order)
+    {
+        const string name = "stop-vpn-blocking";
+        try
+        {
+            if (!VpnController.IsRunning)
+            {
+                return new ReleaseStep(order, name, StepOutcome.Skipped, "vpn not running");
+            }
+
+            VpnController.Stop(_context);
+            return new ReleaseStep(order, name, StepOutcome.Succeeded, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error(Tag, name + " failed: " + ex);
+            return new ReleaseStep(order, name, StepOutcome.Failed, ex.Message);
+        }
     }
 
     private ReleaseStep ClearRestriction(int order, string restriction)

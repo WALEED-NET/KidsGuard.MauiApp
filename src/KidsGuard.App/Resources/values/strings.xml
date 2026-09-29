@@ -38,6 +38,30 @@
     <string name="apps_clear_all">إلغاء التحديد</string>
     <string name="apps_select_all_filtered">حُدّد {0} تطبيقاً</string>
 
+    <string name="release_section_title">مخرج الطوارئ</string>
+    <string name="release_btn">فكّ الحماية الآن</string>
+    <string name="release_done">اكتمل الفكّ بنجاح</string>
+    <string name="release_partial">اكتمل الفكّ وفيه خطوات فاشلة — راجع السجلّ</string>
+    <string name="release_confirm_title">تأكيد فكّ الحماية</string>
+    <string name="release_confirm_msg">سيُوقف الحجب، وتُرفع كلّ القيود التي فرضها التطبيق، ويتخلّى عن ملكية الجهاز إن كانت مُفعَّلة. هل تتابع؟</string>
+
+    <string name="pin_set_btn">تعيين رمز الحماية</string>
+    <string name="pin_change_btn">تغيير رمز الحماية</string>
+    <string name="pin_set_title">عيّن رمز حماية</string>
+    <string name="pin_enter_title">أدخل رمز الحماية</string>
+    <string name="pin_hint">رمز من 4 أرقام فأكثر</string>
+    <string name="pin_wrong">الرمز غير صحيح</string>
+    <string name="pin_saved">حُفظ رمز الحماية</string>
+    <string name="pin_too_short">الرمز قصير — أربعة أرقام على الأقلّ</string>
+    <string name="pin_missing_warning">لا يوجد رمز حماية بعد — عيّنه قبل تفعيل Device Owner</string>
+    <string name="pin_present">رمز الحماية مُعيَّن</string>
+
+    <string name="emergency_label">KidsGuard — طوارئ</string>
+    <string name="emergency_desc">شاشة مستقلّة تفكّ الحماية حتى لو تعطّلت الشاشة الرئيسية</string>
+
+    <string name="btn_ok">موافق</string>
+    <string name="btn_cancel">إلغاء</string>
+
     <string name="log_open">عرض السجلّ ونسخه</string>
     <string name="log_title">سجلّ التطبيق</string>
     <string name="log_refresh">تحديث</string>
