@@ -14,7 +14,7 @@
   <PropertyGroup>
     <ApplicationId>com.kidsguard.app</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
-    <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>0.2.0</ApplicationDisplayVersion>
     <!-- x64 للـ emulator، arm64 لجهاز الطفل -->
     <RuntimeIdentifiers>android-x64;android-arm64</RuntimeIdentifiers>
   </PropertyGroup>

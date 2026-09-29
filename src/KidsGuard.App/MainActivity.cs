@@ -162,6 +162,11 @@ public class MainActivity : Activity
         if (VpnController.IsRunning)
         {
             AppLog.Info(Tag, "user tapped: stop blocking");
+            // إيقاف صريح من الوالد = إلغاء النيّة، فلا يعود الحجب بعد الإقلاع.
+            if (_settings is not null)
+            {
+                _settings.BlockingEnabled = false;
+            }
             VpnController.Stop(this);
             RefreshVpnStatus();
             return;
@@ -193,6 +198,11 @@ public class MainActivity : Activity
     private void StartBlocking()
     {
         AppLog.Info(Tag, "starting vpn service");
+        // تُحفظ النيّة على القرص ليقرأها BootReceiver بعد إعادة الإقلاع.
+        if (_settings is not null)
+        {
+            _settings.BlockingEnabled = true;
+        }
         VpnController.Start(this);
         RefreshVpnStatus();
     }
