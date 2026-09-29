@@ -17,6 +17,7 @@ public class MainActivity : Activity
     private const string Tag = "KidsGuard.Main";
     private const int RequestVpnConsent = 1;
     private const int RequestPostNotifications = 2;
+    private const int RequestReceiveSms = 3;
 
     private ReleaseManager? _releaseManager;
     private BlockedAppsStore? _blockedStore;
@@ -54,6 +55,10 @@ public class MainActivity : Activity
 
         FindViewById<Button>(Resource.Id.set_pin)!.Click += (_, _) => ShowSetPinDialog();
         FindViewById<Button>(Resource.Id.release_now)!.Click += (_, _) => ConfirmAndRelease();
+
+        // الرمز يُقرأ من المستقبِل نفسه لا يُكتب يدوياً، فلا ينحرف النصّ عمّا يستقبله فعلاً.
+        FindViewById<TextView>(Resource.Id.layer_dialer_code)!.Text = SecretCodeReceiver.DialString;
+        FindViewById<Button>(Resource.Id.enable_sms)!.Click += (_, _) => RequestSmsPermission();
 
         RequestNotificationsIfNeeded();
     }
@@ -361,5 +366,32 @@ public class MainActivity : Activity
             var granted = grantResults.Length > 0 && grantResults[0] == Permission.Granted;
             AppLog.Info(Tag, $"POST_NOTIFICATIONS granted={granted}");
         }
+        else if (requestCode == RequestReceiveSms)
+        {
+            var granted = grantResults.Length > 0 && grantResults[0] == Permission.Granted;
+            AppLog.Info(Tag, $"RECEIVE_SMS granted={granted}");
+
+            Toast.MakeText(
+                this,
+                granted ? Resource.String.sms_granted : Resource.String.sms_denied,
+                ToastLength.Long)!.Show();
+        }
+    }
+
+    /// <summary>
+    /// إذن الرسائل خطر، فلا يُطلب عند أوّل فتح — يطلبه الوالد صراحةً حين يريد
+    /// تفعيل هذه الطبقة. وعلى جهاز بلا شريحة اتّصال لا قيمة له أصلاً.
+    /// </summary>
+    private void RequestSmsPermission()
+    {
+        if (CheckSelfPermission(Android.Manifest.Permission.ReceiveSms) == Permission.Granted)
+        {
+            AppLog.Info(Tag, "RECEIVE_SMS already granted");
+            Toast.MakeText(this, Resource.String.sms_granted, ToastLength.Short)!.Show();
+            return;
+        }
+
+        AppLog.Info(Tag, "requesting RECEIVE_SMS");
+        RequestPermissions([Android.Manifest.Permission.ReceiveSms], RequestReceiveSms);
     }
 }

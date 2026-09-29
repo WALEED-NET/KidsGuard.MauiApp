@@ -56,6 +56,15 @@
     <string name="pin_missing_warning">لا يوجد رمز حماية بعد — عيّنه قبل تفعيل Device Owner</string>
     <string name="pin_present">رمز الحماية مُعيَّن</string>
 
+    <string name="layers_title">طبقات الفكّ الأخرى</string>
+    <string name="layer_dialer">من لوحة الاتصال، اطلب:</string>
+    <string name="layer_sms">برسالة نصّية إلى الجهاز:</string>
+    <string name="layer_sms_format">KIDSGUARD-RELEASE &lt;رمزك&gt;</string>
+    <string name="layer_crash">حارس حلقة الانهيار: يفكّ تلقائياً بعد 3 انهيارات خلال 10 دقائق</string>
+    <string name="sms_enable_btn">تفعيل الفكّ عبر الرسائل</string>
+    <string name="sms_granted">تم — الفكّ عبر الرسائل مفعّل</string>
+    <string name="sms_denied">رُفض الإذن — الفكّ عبر الرسائل معطّل</string>
+
     <string name="emergency_label">KidsGuard — طوارئ</string>
     <string name="emergency_desc">شاشة مستقلّة تفكّ الحماية حتى لو تعطّلت الشاشة الرئيسية</string>
 
